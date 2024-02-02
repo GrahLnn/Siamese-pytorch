@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torchvision.models.utils import load_state_dict_from_url
+from torch.hub import load_state_dict_from_url
 
 
 class VGG(nn.Module):
@@ -29,7 +29,7 @@ class VGG(nn.Module):
     def _initialize_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
             elif isinstance(m, nn.BatchNorm2d):
@@ -39,15 +39,16 @@ class VGG(nn.Module):
                 nn.init.normal_(m.weight, 0, 0.01)
                 nn.init.constant_(m.bias, 0)
 
+
 # 105, 105, 3   -> 105, 105, 64 -> 52, 52, 64
 # 52, 52, 64    -> 52, 52, 128  -> 26, 26, 128
 # 26, 26, 128   -> 26, 26, 256  -> 13, 13, 256
 # 13, 13, 256   -> 13, 13, 512  -> 6, 6, 512
 # 6, 6, 512     -> 6, 6, 512    -> 3, 3, 512
-def make_layers(cfg, batch_norm=False, in_channels = 3):
+def make_layers(cfg, batch_norm=False, in_channels=3):
     layers = []
     for v in cfg:
-        if v == 'M':
+        if v == "M":
             layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
         else:
             conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
@@ -58,12 +59,39 @@ def make_layers(cfg, batch_norm=False, in_channels = 3):
             in_channels = v
     return nn.Sequential(*layers)
 
+
 cfgs = {
-    'D': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M']
+    "D": [
+        64,
+        64,
+        "M",
+        128,
+        128,
+        "M",
+        256,
+        256,
+        256,
+        "M",
+        512,
+        512,
+        512,
+        "M",
+        512,
+        512,
+        512,
+        "M",
+    ]
 }
+
+
 def VGG16(pretrained, in_channels, **kwargs):
-    model = VGG(make_layers(cfgs["D"], batch_norm = False, in_channels = in_channels), **kwargs)
+    model = VGG(
+        make_layers(cfgs["D"], batch_norm=False, in_channels=in_channels), **kwargs
+    )
     if pretrained:
-        state_dict = load_state_dict_from_url("https://download.pytorch.org/models/vgg16-397923af.pth", model_dir="./model_data")
+        state_dict = load_state_dict_from_url(
+            "https://download.pytorch.org/models/vgg16-397923af.pth",
+            model_dir="./model_data",
+        )
         model.load_state_dict(state_dict)
     return model
